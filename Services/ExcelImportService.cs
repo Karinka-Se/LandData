@@ -79,7 +79,78 @@ namespace LandData.Services
 
         }
 
-        // ---------- вспомогательные методы ----------
+        // Файл «Цены на все регионы»: данные с 5-й строки,
+        // A — код, B — регион, D/E/F — значения, G — дата редакции, H/I — ссылки
+        public void ImportAllRegionsPrices(string path)
+        {
+            using var workbook = new XLWorkbook(path);
+            var ws = workbook.Worksheet(1);
+            int lastRow = ws.LastRowUsed()!.RowNumber();
+
+            // номер колонки -> категория правила
+            var columns = new Dictionary<int, RuleCategory>
+            {
+                [4] = RuleCategory.Buyout3918,        // D
+                [5] = RuleCategory.Buyout3920House,   // E
+                [6] = RuleCategory.Buyout3920Other    // F
+            };
+
+            Region? currentRegion = null;
+            var current = new Dictionary<RuleCategory, RegionRule>();   // правила текущего региона
+
+            for (int row = 5; row <= lastRow; row++)
+            {
+                string code = NormalizeCode(ws.Cell(row, 1));
+
+                if (code == "")
+                {
+                    // Строка-продолжение: дописываем текст к правилам предыдущего региона
+                    if (currentRegion == null) continue;
+
+                    foreach (var (col, category) in columns)
+                    {
+                        string? extra = Clean(ws.Cell(row, col));
+                        if (extra == null) continue;
+
+                        if (current.TryGetValue(category, out var existing))
+                        {
+                            existing.ValueText = string.IsNullOrEmpty(existing.ValueText)
+                                ? extra
+                                : existing.ValueText + "; " + extra;
+                        }
+                        else
+                        {
+                            current[category] = CreateRule(currentRegion, category, ws.Cell(row, col));
+                        }
+                    }
+                    continue;
+                }
+
+                // Новый регион
+                var region = GetOrCreateRegion(code, ws.Cell(row, 2).GetString());
+                currentRegion = region;
+                current.Clear();
+
+                var dateCell = ws.Cell(row, 7);
+                DateTime? edition = dateCell.DataType == XLDataType.DateTime
+                    ? dateCell.GetDateTime()
+                    : null;                                  // «-» и прочее не считаем датой
+
+                foreach (var (col, category) in columns)
+                {
+                    var cell = ws.Cell(row, col);
+                    if (cell.IsEmpty()) continue;            // пустые правила не создаём
+
+                    var rule = CreateRule(region, category, cell);
+                    rule.EditionDate = edition;
+                    AddLink(rule, ws.Cell(row, 8));
+                    AddLink(rule, ws.Cell(row, 9));
+                    current[category] = rule;
+                }
+            }
+        }
+
+        // вспомогательные методы 
 
         // "01", "1", "1.0" -> "01"
         private static string NormalizeCode(IXLCell cell)
