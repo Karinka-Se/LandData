@@ -19,18 +19,6 @@ namespace LandData.Views
         public MainWindow()
         {
             InitializeComponent();
-            //проверка без визуала
-            //var importer = new Services.ExcelImportService();
-
-
-            //importer.ImportFarmHouse(@"D:\Курсовая 2026\LandData\Таблицы\Жилой дом КФХ на сельхозке..xlsx");
-            //importer.ImportRedistribution(@"D:\Курсовая 2026\LandData\Таблицы\Таблица стоимость перераспределения участка.xlsx");
-            //importer.ImportBuyoutAfter3Years(@"D:\Курсовая 2026\LandData\Таблицы\Цена выкупа сельхоз участка через 3 года..xlsx");
-            //importer.ImportAllRegionsPrices(@"D:\Курсовая 2026\LandData\Таблицы\Цены на все регионы.xlsx"); 
-
-            //var bash = importer.Regions.First(r => r.Code == "02");
-            //MessageBox.Show($"Регионов: {importer.Regions.Count}\n" +
-            //    string.Join("\n", bash.Rules.Select(r => $"{r.Category}: {r.ValueText}")));
         }
     }
 }
