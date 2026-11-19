@@ -21,5 +21,17 @@ namespace LandData.Models
 
         public DateTime UpdatedAt { get; set; }
         public List<DocumentLink> Links { get; set; } = new();
+
+        public string CategoryName => Category switch
+        {
+            RuleCategory.Buyout3918 => "Выкуп (ст. 39.18)",
+            RuleCategory.Buyout3920House => "Выкуп (ст. 39.20, жилой дом)",
+            RuleCategory.Buyout3920Other => "Выкуп (ст. 39.20, иные случаи)",
+            RuleCategory.Redistribution => "Перераспределение",
+            RuleCategory.BuyoutAfter3Years => "Выкуп через 3 года аренды",
+            RuleCategory.Moratorium => "Мораторий",
+            RuleCategory.FarmHouse => "Жилой дом КФХ на сельхозке",
+            _ => Category.ToString()
+        };
     }
 }
